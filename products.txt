@@ -1,2 +1,2 @@
-CLOTHING,sweater,125,2
-SHOES,sneakers,100,4
+sweater,CLOTHING,125,2
+sneakers,SHOES,100,4

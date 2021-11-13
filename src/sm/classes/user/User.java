@@ -15,7 +15,7 @@ public class User implements IEnvVariables {
 	private String address;
 	private RoleType roleType;
 		
-	private User(String username, String password) {
+	public User(String username, String password) {
 		this.username = username;
 		this.password = password;
 		this.address = "";
