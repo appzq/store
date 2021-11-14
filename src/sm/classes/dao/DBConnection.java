@@ -7,7 +7,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 
 import sm.classes.order.Order;
 import sm.classes.product.Product;
@@ -125,35 +124,32 @@ public class DBConnection {
 		}
 	}
 	
-	public void insertProduct(ArrayList<Product> products) {
-		if(conn != null && products != null && products.size() > 0) {
+	public void insertProduct(Product product) {
+		if(conn != null && product != null) {
 			String prepStat = "insert into PRODUCTS(PRODUCTNAME, PRODUCTTYPE, PRICE, QUANTITY) values (?, ?, ?, ?)";
-			
-			products.forEach(product -> {
+			try {
+				if(checkExistingProduct(product.getProductName(), product.getProductType()) == false) {
+					PreparedStatement ps = conn.prepareStatement(prepStat);
+					ps.setString(1, product.getProductName());
+					ps.setString(2, product.getProductType());
+					ps.setDouble(3, product.getPrice());
+					ps.setInt(4, product.getQuantity());
+					
+					ps.executeUpdate();
+					ps.close();	
+				}
+				else {
+					System.out.println("Product " + product.getProductName() + " already exists in DB.");
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} finally {
 				try {
-					if(checkExistingProduct(product.getProductName(), product.getProductType()) == false) {
-						PreparedStatement ps = conn.prepareStatement(prepStat);
-						ps.setString(1, product.getProductName());
-						ps.setString(2, product.getProductType());
-						ps.setDouble(3, product.getPrice());
-						ps.setInt(4, product.getQuantity());
-						
-						ps.executeUpdate();
-						ps.close();	
-					}
-					else {
-						System.out.println("Product " + product.getProductName() + " already exists in DB.");
-					}
+					conn.commit();
 				} catch (SQLException e) {
 					e.printStackTrace();
-				} finally {
-					try {
-						conn.commit();
-					} catch (SQLException e) {
-						e.printStackTrace();
-					}
 				}
-			});
+			}
 		}
 	}
 	
@@ -181,6 +177,19 @@ public class DBConnection {
 					e.printStackTrace();
 				}
 			}
+		}
+	}
+	
+	public void updateProduct(String productName, int quantity) {
+		String updateProduct = "UPDATE PRODUCTS SET QUANTITY = QUANTITY + \"" + quantity + "\"WHERE PRODUCTNAME =\"" + productName + "\";";
+		
+		try {
+			Statement statement = conn.createStatement();
+			statement.executeUpdate(updateProduct);
+			statement.close();
+			conn.commit();
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
 	}
 	
@@ -224,7 +233,7 @@ public class DBConnection {
 		return user;
 	}
 	
-	private boolean checkExistingProduct(String productName, String productType) {
+	public boolean checkExistingProduct(String productName, String productType) {
 		boolean found = false;
 		String selectProduct = "select * from PRODUCTS where PRODUCTNAME =\"" + productName + "\" AND PRODUCTTYPE =\"" + productType + "\" limit 1;";
 		
@@ -261,6 +270,27 @@ public class DBConnection {
 		}
 	}
 	
+	public Product selectProduct(String productName, int quantity) {
+		Product prod = null;
+		
+		String selectedProduct = "SELECT * from PRODUCTS where PRODUCTNAME = \""+ productName + "\";";		
+		try {
+			Statement statement = conn.createStatement();
+			ResultSet rs = statement.executeQuery(selectedProduct);
+			if(rs.next()) {
+				String prodName = rs.getString("PRODUCTNAME");
+				String productType = rs.getString("PRODUCTTYPE");
+				double price = rs.getDouble("PRICE");
+				prod = new Product(prodName, productType, price, quantity);
+			}
+			rs.close();
+			statement.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return prod;
+	}
+	
 	public void selectProducts() {
 		System.out.println("---- Available products ----");
 		
@@ -286,6 +316,26 @@ public class DBConnection {
 		System.out.println("---- Previous orders ----");
 		
 		String selectOrders = "SELECT * FROM ORDERS WHERE USERNAME =\""+ username +"\";";
+		try {
+			Statement statement = conn.createStatement();
+			ResultSet rs = statement.executeQuery(selectOrders);
+			while(rs.next()) {
+				String uName = rs.getString("USERNAME");
+				String productName = rs.getString("PRODUCTNAME");
+				double price = rs.getDouble("PRICE");
+				int quantity = rs.getInt("QUANTITY");
+				double total = rs.getDouble("TOTAL");
+				System.out.println(uName + ": " + productName + " - $" + price + ", " + quantity + ", $" + total);
+			}
+			rs.close();
+			statement.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void selectOrderByOrderId(String orderId) {
+		String selectOrders = "SELECT * FROM ORDERS WHERE ORDERID =\""+ orderId +"\";";
 		try {
 			Statement statement = conn.createStatement();
 			ResultSet rs = statement.executeQuery(selectOrders);
