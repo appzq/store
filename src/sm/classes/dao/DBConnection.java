@@ -12,9 +12,10 @@ import sm.classes.order.Order;
 import sm.classes.product.Product;
 import sm.classes.user.User;
 
-public class DBConnection {
+public class DBConnection implements IDBConstants {
 	private Connection conn;
 	private static DBConnection currentInstance;
+	private String dropTable;
 	
 	private DBConnection() {
 		try {
@@ -56,12 +57,12 @@ public class DBConnection {
 	}
 	
 	private void createUserTable() {
-		//String dropTable = "DROP TABLE USERS";
+		dropTable = "DROP TABLE " + USERS_TABLE;
 		String createUserTable = "CREATE TABLE IF NOT EXISTS USERS (USERNAME CHAR(30) NOT NULL, PASSWORD CHAR(30) NOT NULL, ADDRESS TEXT, ROLETYPE CHAR(10))";
 		
 		try {
 			Statement statement = conn.createStatement();
-			//statement.executeUpdate(dropTable);
+			statement.executeUpdate(dropTable);
 			statement.executeUpdate(createUserTable);
 			statement.close();
 			conn.commit();
@@ -71,10 +72,12 @@ public class DBConnection {
 	}
 	
 	private void createProductTable() {
+		dropTable = "DROP TABLE " + PRODUCTS_TABLE;
 		String createProductTable = "CREATE TABLE IF NOT EXISTS PRODUCTS (PRODUCTNAME CHAR(40) NOT NULL, PRODUCTTYPE CHAR(40), PRICE REAL, QUANTITY INTEGER)";
 		
 		try {
 			Statement stmt = conn.createStatement();
+			stmt.executeUpdate(dropTable);
 			stmt.executeUpdate(createProductTable);
 			stmt.close();
 			conn.commit();
@@ -84,10 +87,12 @@ public class DBConnection {
 	}
 	
 	private void createOrdersTable() {
+		dropTable = "DROP TABLE " + ORDERS_TABLE;
 		String createOrdersTable = "CREATE TABLE IF NOT EXISTS ORDERS (ORDERID CHAR(20) PRIMARY KEY, USERNAME CHAR(30) NOT NULL, PRODUCTNAME CHAR(40) NOT NULL, PRICE REAL, QUANTITY INTEGER, TOTAL REAL)";
 	
 		try {
 			Statement statement = conn.createStatement();
+			statement.executeUpdate(dropTable);
 			statement.executeUpdate(createOrdersTable);
 			statement.close();
 			conn.commit();
@@ -126,7 +131,7 @@ public class DBConnection {
 	
 	public void insertProduct(Product product) {
 		if(conn != null && product != null) {
-			String prepStat = "insert into PRODUCTS(PRODUCTNAME, PRODUCTTYPE, PRICE, QUANTITY) values (?, ?, ?, ?)";
+			String prepStat = "insert into PRODUCTS (PRODUCTNAME, PRODUCTTYPE, PRICE, QUANTITY) values (?, ?, ?, ?)";
 			try {
 				if(checkExistingProduct(product.getProductName(), product.getProductType()) == false) {
 					PreparedStatement ps = conn.prepareStatement(prepStat);
@@ -216,10 +221,10 @@ public class DBConnection {
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery(selectUser);
 			if(rs.next()) {
-				String userN = rs.getString("USERNAME");
-				String pw = rs.getString("PASSWORD");
-				String address = rs.getString("ADDRESS");
-				String roleType = rs.getString("ROLETYPE");
+				String userN = rs.getString(INDEX_USERS_USERNAME);
+				String pw = rs.getString(INDEX_USERS_PASSWORD);
+				String address = rs.getString(INDEX_USERS_ADDRESS);
+				String roleType = rs.getString(INDEX_USERS_ROLETYPE);
 				if(roleType.equals("ADMIN")) {
 					user = new User(userN, pw);
 				} else {
@@ -257,11 +262,11 @@ public class DBConnection {
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery(selectUsers);
 			while(rs.next()) {
-				String user = rs.getString("USERNAME");
-				String pw = rs.getString("PASSWORD");
-				String address = rs.getString("ADDRESS");
-				String roleType = rs.getString("ROLETYPE");
-				System.out.println(roleType + ": " + user + ", " + pw + ", " + address);
+				String userN = rs.getString(INDEX_USERS_USERNAME);
+				String pw = rs.getString(INDEX_USERS_PASSWORD);
+				String address = rs.getString(INDEX_USERS_ADDRESS);
+				String roleType = rs.getString(INDEX_USERS_ROLETYPE);
+				System.out.println(roleType + ": " + userN + ", " + pw + ", " + address);
 			}
 			rs.close();
 			stmt.close();
@@ -278,9 +283,9 @@ public class DBConnection {
 			Statement statement = conn.createStatement();
 			ResultSet rs = statement.executeQuery(selectedProduct);
 			if(rs.next()) {
-				String prodName = rs.getString("PRODUCTNAME");
-				String productType = rs.getString("PRODUCTTYPE");
-				double price = rs.getDouble("PRICE");
+				String prodName = rs.getString(INDEX_PRODUCTS_PRODUCTNAME);
+				String productType = rs.getString(INDEX_PRODUCTS_PRODUCTTYPE);
+				double price = rs.getDouble(INDEX_PRODUCTS_PRICE);
 				prod = new Product(prodName, productType, price, quantity);
 			}
 			rs.close();
@@ -299,11 +304,11 @@ public class DBConnection {
 			Statement statement = conn.createStatement();
 			ResultSet rs = statement.executeQuery(selectProducts);
 			while(rs.next()) {
-				String productName = rs.getString("PRODUCTNAME");
-				String productType = rs.getString("PRODUCTTYPE");
-				double price = rs.getDouble("PRICE");
-				int quantity = rs.getInt("QUANTITY");
-				System.out.println(productType + ": " + productName + ", " + price + ", " + quantity);
+				String prodName = rs.getString(INDEX_PRODUCTS_PRODUCTNAME);
+				String productType = rs.getString(INDEX_PRODUCTS_PRODUCTTYPE);
+				double price = rs.getDouble(INDEX_PRODUCTS_PRICE);
+				int quantity = rs.getInt(INDEX_PRODUCTS_QUANTITY);
+				System.out.println(productType + ": " + prodName + ", " + price + ", " + quantity);
 			}
 			rs.close();
 			statement.close();
@@ -320,11 +325,11 @@ public class DBConnection {
 			Statement statement = conn.createStatement();
 			ResultSet rs = statement.executeQuery(selectOrders);
 			while(rs.next()) {
-				String uName = rs.getString("USERNAME");
-				String productName = rs.getString("PRODUCTNAME");
-				double price = rs.getDouble("PRICE");
-				int quantity = rs.getInt("QUANTITY");
-				double total = rs.getDouble("TOTAL");
+				String uName = rs.getString(INDEX_ORDERS_USERNAME);
+				String productName = rs.getString(INDEX_ORDERS_PRODUCTNAME);
+				double price = rs.getDouble(INDEX_ORDERS_PRICE);
+				int quantity = rs.getInt(INDEX_ORDERS_QUANTITY);
+				double total = rs.getDouble(INDEX_ORDERS_TOTAL);
 				System.out.println(uName + ": " + productName + " - $" + price + ", " + quantity + ", $" + total);
 			}
 			rs.close();
@@ -340,11 +345,11 @@ public class DBConnection {
 			Statement statement = conn.createStatement();
 			ResultSet rs = statement.executeQuery(selectOrders);
 			while(rs.next()) {
-				String uName = rs.getString("USERNAME");
-				String productName = rs.getString("PRODUCTNAME");
-				double price = rs.getDouble("PRICE");
-				int quantity = rs.getInt("QUANTITY");
-				double total = rs.getDouble("TOTAL");
+				String uName = rs.getString(INDEX_ORDERS_USERNAME);
+				String productName = rs.getString(INDEX_ORDERS_PRODUCTNAME);
+				double price = rs.getDouble(INDEX_ORDERS_PRICE);
+				int quantity = rs.getInt(INDEX_ORDERS_QUANTITY);
+				double total = rs.getDouble(INDEX_ORDERS_TOTAL);
 				System.out.println(uName + ": " + productName + " - $" + price + ", " + quantity + ", $" + total);
 			}
 			rs.close();

@@ -14,24 +14,17 @@ public class Main {
 	private static Scanner sc = new Scanner(System.in);
 
 	public static void main(String[] args) {
-		ArrayList<User> admins = User.retrieveAdminsFromJSON();
+		//ArrayList<User> admins = User.retrieveAdminsFromJSON();
 		
 //		admins.forEach(admin -> {
 //			dbc.insertUser(admin);
 //		});
-		//dbc.selectUsers();
-		
-		ArrayList<User> users = new ArrayList<>();
-		users.add(new User("apop", "pwpwpwp", "asdas"));
-		users.add(new User("apop2", "pwpwpwp", "asdas"));
-		
-		//dbc.insertUser(users);
-		//dbc.selectUsers();
-		//dbc.closeDB();
-		
-		ArrayList<Product> products = Product.readProductsFromTxt("products.txt");
+				
+		//ArrayList<Product> products = Product.readProductsFromTxt("products.txt");
 
-		//dbc.insertProduct(products);
+//		products.forEach(product -> {
+//			dbc.insertProduct(product);
+//		});
 		dbc.selectUsers();
 		dbc.selectProducts();
 		
