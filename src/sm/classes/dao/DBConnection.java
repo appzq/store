@@ -261,7 +261,7 @@ public class DBConnection {
 				String pw = rs.getString("PASSWORD");
 				String address = rs.getString("ADDRESS");
 				String roleType = rs.getString("ROLETYPE");
-				System.out.println("USER: " + user + ", " + pw + ", " + address +", " + roleType);
+				System.out.println(roleType + ": " + user + ", " + pw + ", " + address);
 			}
 			rs.close();
 			stmt.close();
@@ -303,7 +303,7 @@ public class DBConnection {
 				String productType = rs.getString("PRODUCTTYPE");
 				double price = rs.getDouble("PRICE");
 				int quantity = rs.getInt("QUANTITY");
-				System.out.println("PRODUCT: " + productName +", " + productType + ", " + price + ", " + quantity);
+				System.out.println(productType + ": " + productName + ", " + price + ", " + quantity);
 			}
 			rs.close();
 			statement.close();
